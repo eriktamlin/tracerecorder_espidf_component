@@ -1,0 +1,11 @@
+/*
+ * Percepio TraceRecorder for Tracealyzer v989.878.767
+ * Copyright 2025 Percepio AB
+ * www.percepio.com
+ *
+ * SPDX-License-Identifier: Apache-2.0
+ *
+ * Tracealyzer recorder integration
+ */
+
+#include <trcRecorder.h>
