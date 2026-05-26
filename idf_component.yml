@@ -1,4 +1,7 @@
-description: Percepio TraceRecorder will record traces that can be opened by Tracealyzer
-license: Apache-2.0
-url: https://percepio.com/tracealyzer/
-version: 0.0.1
+version: 1.0.0
+description: Percepio TraceRecorder component for ESP-IDF
+url: https://github.com/espressif/idf-extra-components/tree/master/tracerecorder
+issues: https://github.com/espressif/idf-extra-components/issues
+repository: https://github.com/espressif/idf-extra-components.git
+dependencies:
+  idf: ">=6.0"

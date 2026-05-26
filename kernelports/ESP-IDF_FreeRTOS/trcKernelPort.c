@@ -88,37 +88,33 @@ portMUX_TYPE xTraceMutex[TRC_CFG_CORE_COUNT] = { [0 ... (TRC_CFG_CORE_COUNT - 1)
 
 #if defined(configSUPPORT_STATIC_ALLOCATION) && (configSUPPORT_STATIC_ALLOCATION == 1)
 
-#if (TRC_CFG_ESP_IDF_VERSION >= TRC_ESP_IDF_VERSION_4_0_0)
 static StackType_t stackTzCtrl[(TRC_CFG_CTRL_TASK_STACK_SIZE * sizeof(TraceUnsignedBaseType_t)) + (sizeof(TraceUnsignedBaseType_t) / sizeof(StackType_t))]; /* Add some extra space to avoid overflows */
 static StaticTask_t tcbTzCtrl;
-#else
-#error "configSUPPORT_STATIC_ALLOCATION not supported before FreeRTOS v9"
-#endif
 
 #endif /* defined(configSUPPORT_STATIC_ALLOCATION) && (configSUPPORT_STATIC_ALLOCATION == 1) */
 
 /* The TzCtrl task - receives commands from Tracealyzer (start/stop) */
 static portTASK_FUNCTION(TzCtrl, pvParameters);
 
-#if (TRC_CFG_INCLUDE_TIMER_EVENTS == 1 && TRC_CFG_ESP_IDF_VERSION >= TRC_ESP_IDF_VERSION_4_3_0)
+#if (TRC_CFG_INCLUDE_TIMER_EVENTS == 1)
 
 /* If the project does not include the FreeRTOS timers, TRC_CFG_INCLUDE_TIMER_EVENTS must be set to 0 */
 #include <freertos/timers.h>
 
-#endif /* (TRC_CFG_INCLUDE_TIMER_EVENTS == 1 && TRC_CFG_ESP_IDF_VERSION >= TRC_ESP_IDF_VERSION_4_3_0) */
+#endif
 
-#if (TRC_CFG_INCLUDE_EVENT_GROUP_EVENTS == 1 && TRC_CFG_ESP_IDF_VERSION >= TRC_ESP_IDF_VERSION_4_3_0)
+#if (TRC_CFG_INCLUDE_EVENT_GROUP_EVENTS == 1)
 /* If the project does not include the FreeRTOS event groups, TRC_CFG_INCLUDE_TIMER_EVENTS must be set to 0 */
 #include <freertos/event_groups.h>
 
-#endif /* (TRC_CFG_INCLUDE_EVENT_GROUP_EVENTS == 1 && TRC_CFG_ESP_IDF_VERSION >= TRC_ESP_IDF_VERSION_4_3_0) */
+#endif
 
-#if (TRC_CFG_INCLUDE_STREAM_BUFFER_EVENTS == 1 && TRC_CFG_ESP_IDF_VERSION >= TRC_ESP_IDF_VERSION_4_3_0)
+#if (TRC_CFG_INCLUDE_STREAM_BUFFER_EVENTS == 1)
 
 /* If the project does not include the FreeRTOS stream buffers, TRC_CFG_INCLUDE_STREAM_BUFFER_EVENTS must be set to 0 */
 #include <freertos/stream_buffer.h>
 
-#endif /* (TRC_CFG_INCLUDE_STREAM_BUFFER_EVENTS == 1 && TRC_CFG_ESP_IDF_VERSION >= TRC_ESP_IDF_VERSION_4_3_0) */
+#endif
 
 //#if (TRC_CFG_ACKNOWLEDGE_QUEUE_SET_SEND != TRC_ACKNOWLEDGED) && (TRC_CFG_XTENSA_FREERTOS_VERSION == TRC_FREERTOS_VERSION_10_3_0 || TRC_CFG_XTENSA_FREERTOS_VERSION == TRC_FREERTOS_VERSION_10_3_1) && (configUSE_QUEUE_SETS == 1)
 //#error "When using FreeRTOS v10.3.0 or v10.3.1, please make sure that the trace point in prvNotifyQueueSetContainer() in queue.c is renamed from traceQUEUE_SEND to traceQUEUE_SET_SEND in order to tell them apart from other traceQUEUE_SEND trace points. Then set TRC_CFG_ACKNOWLEDGE_QUEUE_SET_SEND in trcConfig.h to TRC_ACKNOWLEDGED to get rid of this error."
@@ -318,7 +314,7 @@ void vTraceSetMutexName(void* pvMutex, const char* szName)
 	xTraceObjectSetNameWithoutHandle(pvMutex, szName);
 }
 
-#if (TRC_CFG_INCLUDE_EVENT_GROUP_EVENTS == 1 && TRC_CFG_ESP_IDF_VERSION >= TRC_ESP_IDF_VERSION_4_0_0)
+#if (TRC_CFG_INCLUDE_EVENT_GROUP_EVENTS == 1)
 
 void vTraceSetEventGroupName(void* pvEventGroup, const char* szName)
 {
@@ -327,7 +323,7 @@ void vTraceSetEventGroupName(void* pvEventGroup, const char* szName)
 
 #endif
 
-#if (TRC_CFG_INCLUDE_STREAM_BUFFER_EVENTS == 1 && TRC_CFG_FREERTOS_VERSION >= TRC_FREERTOS_VERSION_10_0_0)
+#if (TRC_CFG_INCLUDE_STREAM_BUFFER_EVENTS == 1)
 
 void vTraceSetStreamBufferName(void* pvStreamBuffer, const char* szName)
 {
@@ -353,7 +349,6 @@ TraceHeapHandle_t xTraceKernelPortGetSystemHeapHandle(void)
  * register to the initialization hooks for the Tracerecorder. By doing this, less modifications to the startup.c file
  * are required.
  */
-#if TRC_CFG_ESP_IDF_VERSION >= TRC_ESP_IDF_VERSION_5_0_0
 esp_err_t xTraceEspKernelPortInitialize()
 {
 	xTraceInitialize();
@@ -374,7 +369,6 @@ esp_err_t xTraceEspKernelPortEnable()
 
 #include <esp_private/startup_internal.h>
 
-#if TRC_CFG_ESP_IDF_VERSION > TRC_ESP_IDF_VERSION_5_2_0
 ESP_SYSTEM_INIT_FN(xTraceEspKernelPortInitialize, CORE, BIT(0), 102)
 {
 	return xTraceEspKernelPortInitialize();
@@ -384,32 +378,5 @@ ESP_SYSTEM_INIT_FN(xTraceEspKernelPortEnable, CORE, BIT(0), 999)
 {
 	return xTraceEspKernelPortEnable();
 }
-#else
-ESP_SYSTEM_INIT_FN(xTraceEspKernelPortInitialize, BIT(0), 102)
-{
-	return xTraceEspKernelPortInitialize();
-}
-
-ESP_SYSTEM_INIT_FN(xTraceEspKernelPortEnable, BIT(0), 240)
-{
-	return xTraceEspKernelPortEnable();
-}
-#endif /* TRC_CFG_ESP_IDF_VERSION > TRC_ESP_IDF_VERSION_5_4_0 */
-
-#endif
-
-#include "esp_trace_registry.h"
-#include "esp_trace_port_encoder.h"
-
-static esp_err_t TraceRecorder_encoder_init(esp_trace_encoder_t *enc, const void *cfg)
-{
-    return ESP_OK;
-}
-
-static const esp_trace_encoder_vtable_t TraceRecorder_encoder_init_vt = {
-    .init = TraceRecorder_encoder_init
-};
-
-ESP_TRACE_REGISTER_ENCODER("TraceRecorder_encoder", &TraceRecorder_encoder_init_vt);
 
 #endif
